@@ -3,10 +3,17 @@
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
+import os
 
 from config.bot import bot_token, max_file_size
+from config.host import app_url
 from src.audio import download_and_transcribe
 from src.rating import get_reply_markup, handle_rating_callback
+
+"""
+Configurações de deploy
+"""
+PORT = int(os.environ.get("PORT", 5000))
 
 """
 Handler do comando /start
@@ -82,7 +89,15 @@ def main():
 
     # Run
     logging.info("Bot rodando e aguardando requisições")
-    updater.start_polling()
+
+    # updater.start_polling() # local
+
+    updater.start_webhook(
+        listen="0.0.0.0",
+        port=int(PORT),
+        url_path=bot_token
+    )
+    updater.bot.setWebhook(app_url + bot_token)
     updater.idle()
 
 

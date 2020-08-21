@@ -6,7 +6,6 @@
 # -*- coding: utf-8 -*-
 
 from requests import get
-from random import randint
 from json import loads
 import os
 import subprocess

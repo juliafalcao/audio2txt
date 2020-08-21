@@ -1,6 +1,9 @@
 """
-https://github.com/narbehaj/telegram-audio-download/blob/master/tg_audio.py
+
 """
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from requests import get
 from random import randint
@@ -8,57 +11,63 @@ from json import loads
 import os
 import subprocess
 import logging
+from tempfile import TemporaryDirectory
 
 from config.bot import bot_token
 from src.transcription import transcribe
 
-logger = logging.getLogger()
-
+"""
+Recebe file_id e chama Telegram API para obter o file_path.
+"""
 def get_file_path(file_id):
     get_path = get(f"https://api.telegram.org/bot{bot_token}/getFile?file_id={file_id}")
     json_doc = loads(get_path.text)
-    try:
-        file_path = json_doc["result"]["file_path"]
-        logging.info("File path: %s" % file_path)
-    except Exception as e:  # Happens when the file size is bigger than the API condition
-        logging.exception("get_file_path - Exception: %s" % str(e))
-        return None
+    file_path = json_doc["result"]["file_path"]
 
     return f"https://api.telegram.org/file/bot{bot_token}/{file_path}"
 
-def download_file(file_id, chat_id) -> str:
+"""
+Recebe path do arquivo de áudio e faz download para um diretório temporário já criado.
+Retorna path completo do arquivo baixado (extensão: .oga).
+"""
+def download_file(file_id, chat_id, temp_dir) -> str:
+    logging.info("[%s] Baixando arquivo %s...", chat_id, file_id)
     download_url = get_file_path(file_id)
+    oga_file = get(download_url)
+    oga_temp = f"{temp_dir}/{file_id}.oga"
 
-    try:
-        oga_file = get(download_url)
-        logging.info("oga_file: %s" % type(oga_file))
-        local_filepath = f"audios/{file_id}.oga"
-        with open(local_filepath, "wb") as f:
-            f.write(oga_file.content)
+    with open(oga_temp, "wb") as f:
+        f.write(oga_file.content)
 
-        return local_filepath
+    return oga_temp
 
-    except Exception as e:
-        logging.info("get_file - Exception: %s" % str(e))
-        return None
-
+"""
+Recebe path do arquivo .oga e converte para .wav usando ffmpeg.
+Retorna path completo do arquivo .wav gerado.
+"""
 def convert_to_wav(oga_filepath: str) -> str:
     wav_filepath = oga_filepath.replace(".oga", ".wav")
-    logging.info("convert_to_wav - working dir: %s" % os.getcwd())
     process = subprocess.run(["ffmpeg", "-i", oga_filepath, wav_filepath], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if process.returncode != 0:
-        raise Exception("Something went wrong")
+        raise Exception("Falha na conversão do .oga para .wav.")
 
     return wav_filepath
 
-
+"""
+Função principal que recebe um chat_id e um file_id e efetua o download, conversão e transcrição do áudio.
+"""
 def download_and_transcribe(file_id, chat_id):
-    # download .oga audio file from chat
-    oga_filepath = download_file(file_id, chat_id)
+    try:
+        with TemporaryDirectory() as temp_dir:
+            # download .oga audio file from chat
+            oga_filepath = download_file(file_id, chat_id, temp_dir)
 
-    # convert to .wav
-    wav_filepath = convert_to_wav(oga_filepath)
+            # convert to .wav
+            wav_filepath = convert_to_wav(oga_filepath)
 
-    # process and transcribe
-    txt = transcribe(wav_filepath)
-    return txt
+            # process and transcribe
+            txt = transcribe(wav_filepath)
+            return txt
+
+    except Exception as e:
+        raise e

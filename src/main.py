@@ -99,7 +99,3 @@ def main():
     )
     updater.bot.setWebhook(app_url + bot_token)
     updater.idle()
-
-
-if __name__ == "__main__":
-    main()

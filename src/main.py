@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
 import os
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from speech_recognition import UnknownValueError
 from src.audio import download_and_transcribe
 from src.rating import get_reply_markup, handle_rating_callback
 
@@ -20,9 +20,10 @@ Responde com mensagem de boas vindas
 """
 def start(update, context):
     chat_id = update.message.chat.id
-    logging.info("[%s] Recebido comando /start" % chat_id)
-    emoji = "" # hugging face emoji
-    update.message.reply_text("Olá! Seja bem vindo. 🤗 Se você me enviar ou encaminhar uma mensagem de áudio, posso te passar uma transcrição!")
+    logging.info("[%s] Recebido comando /start", chat_id)
+    update.message.reply_text("👋 Olá! Seja bem vindo. Se você me enviar ou encaminhar uma mensagem de áudio, posso te passar uma transcrição! 🤗")
+    ps = "PS.: Se você ouvir o áudio e puder avaliar a qualidade da transcrição, eu agradeço muito! 😌"
+    context.bot.send_message(chat_id, text=ps)
 
 """
 Handler de mensagens de voz/áudio
@@ -36,11 +37,10 @@ def handle_voice_message(update, context):
     file_size: int = update.message.voice.file_size
     if file_size > 2_000_000:
         logging.error("[%s] Arquivo maior que 2MB (%sB)", chat_id, file_size)
-        update.message.reply_text(f"Sinto muito, só consigo lidar com arquivos menores que <b>2MB</b> 😟", parse_mode="HTML")
+        update.message.reply_text("Sinto muito, só consigo lidar com arquivos menores que <b>2MB</b> 😟", parse_mode="HTML")
 
     try:
         txt = download_and_transcribe(file_id, chat_id)
-        logging.info("[%s] Texto transcrito: %s", chat_id, txt)
 
         # generate rating keyboard reply markup
         reply_markup = get_reply_markup()
@@ -51,7 +51,12 @@ def handle_voice_message(update, context):
             parse_mode="HTML",
             reply_markup=reply_markup
         )
+        logging.info("[%s] Texto transcrito enviado como resposta", chat_id)
         return
+    except UnknownValueError:
+        logging.error("[%s] UnknownValueError - Nenhum texto identificado", chat_id)
+        err_msg = "Sinto muito, não identifiquei nenhum texto nesse áudio 😕"
+        update.message.reply_text(err_msg)
     except Exception as e:
         logging.error("[%s] Finalizou com erro: %s", chat_id, str(e))
         err_msg = "Poxa! Não foi possível transcrever esse áudio 😰 Espero que não desista de mim."
@@ -61,11 +66,17 @@ def handle_voice_message(update, context):
 Configuração de logging: um handler para stdout e um para arquivo de log
 """
 def config_logging():
+    if "log" not in os.listdir():
+        os.makedirs("log/")
+
+    if not "reviews.csv" in os.listdir("log"):
+        open("log/reviews.csv", mode="w+").close()
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s %(levelname)s - %(module)s - %(message)s',
         handlers=[
-            logging.FileHandler("audio2txt.log", mode="a+"),
+            logging.FileHandler("log/audio2txt.log", mode="a+"),
             logging.StreamHandler()
         ]
     )

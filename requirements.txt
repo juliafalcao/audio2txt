@@ -3,3 +3,4 @@ python-telegram-bot==12.8
 numpy==1.19.1
 requests==2.24.0
 SpeechRecognition==3.8.1
+boto3==1.14.46

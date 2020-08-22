@@ -1,17 +1,11 @@
-"""
-
-"""
-
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from requests import get
 from json import loads
 import os
 import subprocess
 import logging
 from tempfile import TemporaryDirectory
-
+from requests import get
 from src.transcription import transcribe
 
 bot_token = os.environ.get("BOT_TOKEN", "")
@@ -31,7 +25,7 @@ Recebe path do arquivo de áudio e faz download para um diretório temporário j
 Retorna path completo do arquivo baixado (extensão: .oga).
 """
 def download_file(file_id, chat_id, temp_dir) -> str:
-    logging.info("[%s] Baixando arquivo %s...", chat_id, file_id)
+    logging.info("[%s] Baixando arquivo...", chat_id)
     download_url = get_file_path(file_id)
     oga_file = get(download_url)
     oga_temp = f"{temp_dir}/{file_id}.oga"

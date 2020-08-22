@@ -11,7 +11,7 @@ from src.rating import get_reply_markup, handle_rating_callback
 Configurações
 """
 bot_token = os.environ.get("BOT_TOKEN", "")
-bot_url = os.environ.get("APP_URL", "")
+app_url = os.environ.get("APP_URL", "")
 PORT = int(os.environ.get("PORT", 5000))
 
 """

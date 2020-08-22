@@ -89,12 +89,15 @@ def main():
     # Run
     logging.info("Bot rodando e aguardando requisições")
 
-    # updater.start_polling() # local
+    if os.environ.get("ENV", "") == "local":
+        logging.info("(Rodando localmente -> polling)")
+        updater.start_polling()
+    else: # PRD -> webhook
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=int(PORT),
+            url_path=bot_token
+        )
+        updater.bot.setWebhook(app_url + bot_token)
 
-    updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(PORT),
-        url_path=bot_token
-    )
-    updater.bot.setWebhook(app_url + bot_token)
     updater.idle()

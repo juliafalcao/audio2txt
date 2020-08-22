@@ -1,3 +1,4 @@
 config/
 *.pyc
 *.log
+src/__init__.py

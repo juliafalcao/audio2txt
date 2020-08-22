@@ -12,8 +12,9 @@ import subprocess
 import logging
 from tempfile import TemporaryDirectory
 
-from config.bot import bot_token
 from src.transcription import transcribe
+
+bot_token = os.environ.get("BOT_TOKEN", "")
 
 """
 Recebe file_id e chama Telegram API para obter o file_path.

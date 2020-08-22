@@ -4,15 +4,14 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
 import os
-
-from config.bot import bot_token, max_file_size
-from config.host import app_url
 from src.audio import download_and_transcribe
 from src.rating import get_reply_markup, handle_rating_callback
 
 """
-Configurações de deploy
+Configurações
 """
+bot_token = os.environ.get("BOT_TOKEN", "")
+bot_url = os.environ.get("APP_URL", "")
 PORT = int(os.environ.get("PORT", 5000))
 
 """
@@ -35,7 +34,7 @@ def handle_voice_message(update, context):
     logging.info("[%s] Mensagem de voz recebida", chat_id)
 
     file_size: int = update.message.voice.file_size
-    if file_size > max_file_size:
+    if file_size > 2_000_000:
         logging.error("[%s] Arquivo maior que 2MB (%sB)", chat_id, file_size)
         update.message.reply_text(f"Sinto muito, só consigo lidar com arquivos menores que <b>2MB</b> 😟", parse_mode="HTML")
 

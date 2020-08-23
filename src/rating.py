@@ -29,5 +29,5 @@ def handle_rating_callback(update, context):
     query = update.callback_query
     query.answer()
     chat_id = update.callback_query.message.chat.id
-    context.bot.send_message(chat_id, text=replies[query.data]) # reply to feedback
     query.edit_message_reply_markup(reply_markup=None) # hide inline keyboard
+    context.bot.send_message(chat_id, text=replies[query.data]) # reply to feedback

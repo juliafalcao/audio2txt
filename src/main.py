@@ -69,9 +69,6 @@ def config_logging():
     if "log" not in os.listdir():
         os.makedirs("log/")
 
-    if not "reviews.csv" in os.listdir("log"):
-        open("log/reviews.csv", mode="w+").close()
-
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s %(levelname)s - %(module)s - %(message)s',

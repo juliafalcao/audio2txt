@@ -4,3 +4,5 @@ numpy==1.19.1
 requests==2.24.0
 SpeechRecognition==3.8.1
 boto3==1.14.46
+ibm-cloud-sdk-core==1.5.1
+ibm-watson==4.5.0

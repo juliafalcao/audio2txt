@@ -26,8 +26,12 @@ def get_reply_markup():
     return reply_markup
 
 def handle_rating_callback(update, context):
-    query = update.callback_query
-    query.answer()
-    chat_id = update.callback_query.message.chat.id
-    query.edit_message_reply_markup(reply_markup=None) # hide inline keyboard
-    context.bot.send_message(chat_id, text=replies[query.data]) # reply to feedback
+    try:
+        query = update.callback_query
+        query.answer()
+        chat_id = update.callback_query.message.chat.id
+        query.edit_message_reply_markup(reply_markup=None) # hide inline keyboard
+        context.bot.send_message(chat_id, text=replies[query.data]) # reply to feedback
+
+    except Exception as e:
+        logging.exception("handle_rating_callback - Exception: %s", str(e), exc_info=True)
